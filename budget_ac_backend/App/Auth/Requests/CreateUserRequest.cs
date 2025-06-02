@@ -1,0 +1,66 @@
+﻿using budget_ac_backend.App.Auth.Data;
+using budget_ac_backend.App.Auth.Requests.Data;
+using budget_ac_backend.App.Auth.Services;
+using budget_ac_backend.App.Data;
+using budget_ac_backend.App.Repository;
+using budget_ac_backend.App.Utils;
+using FluentValidation;
+using FluentValidation.Results;
+using Serilog;
+
+namespace budget_ac_backend.App.Auth.Requests;
+
+public class CreateUserRequest {
+    private readonly IPasswordHashService _passwordHashService;
+    private readonly ITokenGeneratorService _tokenGeneratorService;
+    private readonly IValidator<CreateUserRequestData> _loginRequestValidator;
+    private readonly IUserRepository _userRepository;
+
+    public CreateUserRequest(
+        IValidator<CreateUserRequestData> loginRequestValidator,
+        IUserRepository userRepository,
+        IPasswordHashService passwordHashService,
+        ITokenGeneratorService tokenGeneratorService) {
+        _passwordHashService = passwordHashService;
+        _loginRequestValidator = loginRequestValidator.ThrowIfArgumentNull();
+        _userRepository = userRepository.ThrowIfArgumentNull();
+        _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
+    }
+
+    public async Task<IResult> Create(HttpContext context, CreateUserRequestData request) {
+        try {
+            Log.Information($"{nameof(CreateUserRequest)} from " +
+                            $"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}, params: {request}");
+            ValidationResult validationResult = await _loginRequestValidator.ValidateAsync(request);
+
+            if (!validationResult.IsValid) {
+                return Results.BadRequest(new { error = ErrorMessages.InvalidData });
+            }
+
+            IUserProfile? userProfile = await _userRepository.CreateUser(request.Email, request.Password);
+
+            if (userProfile == null) {
+                return Results.BadRequest(new { error = ErrorMessages.UserAlreadyExists });
+            }
+
+            byte[] salt = _passwordHashService.GenerateSalt();
+            byte[] passwordHash = _passwordHashService.HashPassword(request.Password, salt);
+
+            userProfile.PasswordHash = passwordHash;
+            userProfile.PasswordSalt = salt;
+
+            RefreshToken newRefreshToken = _tokenGeneratorService.GenerateRefreshToken();
+            await _userRepository.UpdateRefreshToken(userProfile.Id, newRefreshToken);
+
+            return Results.Ok(new {
+                userId = userProfile.Id,
+                accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
+                refreshToken = newRefreshToken.Token
+            });
+        }
+        catch (Exception exception) {
+            Log.Error(exception, string.Empty);
+            return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ErrorMessages.UnexpectedError);
+        }
+    }
+}

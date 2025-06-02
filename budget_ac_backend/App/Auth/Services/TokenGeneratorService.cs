@@ -1,0 +1,55 @@
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using budget_ac_backend.App.Auth.Data;
+using budget_ac_backend.App.Data;
+using budget_ac_backend.App.Utils;
+using Microsoft.IdentityModel.Tokens;
+
+namespace budget_ac_backend.App.Auth.Services;
+
+public class TokenGeneratorService : ITokenGeneratorService {
+    private const int TokenLifeTimeInMinutes = 5;
+    private const int RefreshTokenLifeTimeInDays = 7;
+    private const int RefreshTokenSizeInBytes = 32;
+
+    private readonly IKeystoreService _keystoreService;
+
+    public TokenGeneratorService(IKeystoreService keystoreService) {
+        _keystoreService = keystoreService.ThrowIfArgumentNull();
+    }
+
+    public string GenerateAuthToken(IUserProfile userProfile) {
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        byte[] key = Encoding.ASCII.GetBytes(_keystoreService.GetSecretKey());
+
+        Claim[] claims = [
+            new Claim(JwtRegisteredClaimNames.Sub, userProfile.Id),
+            new Claim(JwtRegisteredClaimNames.Email, userProfile.Email),
+            new Claim(JwtRegisteredClaimNames.Name, userProfile.Name),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+        ];
+
+        SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(TokenLifeTimeInMinutes),
+            Issuer = AuthBuilder.ThisIssuer,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+    public RefreshToken GenerateRefreshToken() {
+        byte[] randomNumber = new byte[RefreshTokenSizeInBytes];
+
+        using (RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create()) {
+            randomNumberGenerator.GetBytes(randomNumber);
+        }
+
+        return new RefreshToken(Convert.ToBase64String(randomNumber),
+            DateTime.UtcNow.AddDays(RefreshTokenLifeTimeInDays));
+    }
+}
