@@ -44,6 +44,7 @@ public class RefreshTokenRequest {
             DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
             userProfile.RefreshToken = refreshToken;
             userProfile.RefreshExpiresAt = refreshTokenExpirationDate;
+            await _userRepository.SaveChangesAsync();
 
             return Results.Ok(new {
                 accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),

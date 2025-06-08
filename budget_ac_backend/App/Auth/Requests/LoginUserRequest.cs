@@ -47,6 +47,7 @@ public class LoginUserRequest {
             }
 
             userProfile.RefreshToken = _tokenGeneratorService.GenerateRefreshToken();
+            await _userRepository.SaveChangesAsync();
 
             return Results.Ok(new {
                 userId = userProfile.Id,

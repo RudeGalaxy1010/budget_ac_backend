@@ -1,7 +1,9 @@
-﻿namespace budget_ac_backend.App.Data;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace budget_ac_backend.App.Data;
 
 public class User {
-    public required int Id { get; set; }
+    [Key] public int Id { get; init; }
     public required string Name { set; get; }
     public required string Email { get; set; }
     public required byte[] Salt { get; set; }

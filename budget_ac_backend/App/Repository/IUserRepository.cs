@@ -3,6 +3,7 @@
 namespace budget_ac_backend.App.Repository;
 
 public interface IUserRepository {
+    Task<User?> GetUserById(int id);
     Task<User?> GetUserByEmail(string email);
     Task<User?> GetUserByRefreshToken(string refreshToken);
 
@@ -12,4 +13,6 @@ public interface IUserRepository {
         byte[] passwordHash,
         string refreshToken,
         DateTime refreshTokenExpiresAt);
+
+    Task SaveChangesAsync();
 }

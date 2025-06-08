@@ -18,7 +18,7 @@ public class AuthMap {
     private readonly LoginUserRequest _loginUserRequest;
     private readonly RefreshTokenRequest _refreshTokenRequest;
 
-    public AuthMap(WebApplication app) {
+    public AuthMap(WebApplication app, IUserRepository userRepository) {
         _app = app;
         _app.UseAuthentication();
         _app.UseAuthorization();
@@ -28,7 +28,6 @@ public class AuthMap {
         IValidator<RefreshTokenRequestData> refreshTokenDataValidator = app.Services.GetService<IValidator<RefreshTokenRequestData>>().ThrowIfArgumentNull();
         ITokenGeneratorService tokenGeneratorService = _app.Services.GetService<ITokenGeneratorService>().ThrowIfArgumentNull();
         IPasswordHashService passwordHashService = _app.Services.GetService<IPasswordHashService>().ThrowIfArgumentNull();
-        IUserRepository userRepository = app.Services.GetService<IUserRepository>().ThrowIfArgumentNull();
 
         _createUserRequest = new CreateUserRequest(createUserDataValidator, userRepository, passwordHashService, tokenGeneratorService);
         _loginUserRequest = new LoginUserRequest(loginDataValidator, userRepository, passwordHashService, tokenGeneratorService);

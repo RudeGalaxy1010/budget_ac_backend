@@ -56,3 +56,5 @@ nunit-*.xml
 # Data
 *.db
 secrets.json
+*.db-shm
+*.db-wal

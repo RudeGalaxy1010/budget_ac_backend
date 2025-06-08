@@ -2,8 +2,6 @@
 using budget_ac_backend.App.Auth.Requests.Data;
 using budget_ac_backend.App.Auth.Services;
 using budget_ac_backend.App.Auth.Validation;
-using budget_ac_backend.App.Data;
-using budget_ac_backend.App.Repository;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -24,26 +22,6 @@ public static class AuthBuilder {
         builder.Services.TryAddSingleton<IValidator<CreateUserRequestData>>(new CreateUserRequestDataValidator());
         builder.Services.TryAddSingleton<IValidator<LoginUserRequestData>>(new LoginRequestDataValidator());
         builder.Services.TryAddSingleton<IValidator<RefreshTokenRequestData>>(new RefreshTokenRequestValidator());
-
-        List<User> userProfiles = new List<User>();
-
-        // Test user
-        // Login: john.doe@gmail.com
-        // Password: string
-        if (builder.Environment.IsDevelopment()) {
-            userProfiles.Add(new User {
-                Id = -1,
-                Name = "John Doe",
-                Email = "john.doe@gmail.com",
-                PasswordHash = [30, 45, 115, 9, 174, 46, 251, 240, 12, 83, 14, 124, 209, 15, 118, 218],
-                Salt = [221, 126, 68, 171, 79, 190, 50, 187, 252, 113, 105, 127, 203, 117, 8, 229],
-                RegisteredAt = DateTime.UtcNow,
-                RefreshToken = "##########",
-                RefreshExpiresAt = DateTime.UtcNow
-            });
-        }
-
-        builder.Services.TryAddSingleton<IUserRepository>(new InMemoryUserRepository(userProfiles));
 
         builder.Services.AddAuthentication(options => {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
