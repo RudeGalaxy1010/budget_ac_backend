@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using budget_ac_backend.App.Auth.Data;
 using budget_ac_backend.App.Data;
 using budget_ac_backend.App.Utils;
 using Microsoft.IdentityModel.Tokens;
@@ -20,14 +19,14 @@ public class TokenGeneratorService : ITokenGeneratorService {
         _keystoreService = keystoreService.ThrowIfArgumentNull();
     }
 
-    public string GenerateAuthToken(IUserProfile userProfile) {
+    public string GenerateAuthToken(User user) {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         byte[] key = Encoding.ASCII.GetBytes(_keystoreService.GetSecretKey());
 
         Claim[] claims = [
-            new Claim(JwtRegisteredClaimNames.Sub, userProfile.Id),
-            new Claim(JwtRegisteredClaimNames.Email, userProfile.Email),
-            new Claim(JwtRegisteredClaimNames.Name, userProfile.Name),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Name, user.Name),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         ];
 
@@ -42,14 +41,17 @@ public class TokenGeneratorService : ITokenGeneratorService {
         return tokenHandler.WriteToken(token);
     }
 
-    public RefreshToken GenerateRefreshToken() {
+    public string GenerateRefreshToken() {
         byte[] randomNumber = new byte[RefreshTokenSizeInBytes];
 
         using (RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create()) {
             randomNumberGenerator.GetBytes(randomNumber);
         }
 
-        return new RefreshToken(Convert.ToBase64String(randomNumber),
-            DateTime.UtcNow.AddDays(RefreshTokenLifeTimeInDays));
+        return Convert.ToBase64String(randomNumber);
+    }
+
+    public DateTime GetRefreshTokenExpirationDate() {
+        return DateTime.UtcNow.AddDays(RefreshTokenLifeTimeInDays);
     }
 }

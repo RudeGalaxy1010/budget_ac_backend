@@ -1,5 +1,4 @@
-﻿using budget_ac_backend.App.Auth.Data;
-using budget_ac_backend.App.Auth.Requests.Data;
+﻿using budget_ac_backend.App.Auth.Requests.Data;
 using budget_ac_backend.App.Auth.Services;
 using budget_ac_backend.App.Data;
 using budget_ac_backend.App.Repository;
@@ -37,25 +36,21 @@ public class CreateUserRequest {
                 return Results.BadRequest(new { error = ErrorMessages.InvalidData });
             }
 
-            IUserProfile? userProfile = await _userRepository.CreateUser(request.Email, request.Password);
+            byte[] salt = _passwordHashService.GenerateSalt();
+            byte[] passwordHash = _passwordHashService.HashPassword(request.Password, salt);
+            string refreshToken = _tokenGeneratorService.GenerateRefreshToken();
+            DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
+
+            User? userProfile = await _userRepository.CreateUser(request.Email, salt, passwordHash, refreshToken, refreshTokenExpirationDate);
 
             if (userProfile == null) {
                 return Results.BadRequest(new { error = ErrorMessages.UserAlreadyExists });
             }
 
-            byte[] salt = _passwordHashService.GenerateSalt();
-            byte[] passwordHash = _passwordHashService.HashPassword(request.Password, salt);
-
-            userProfile.PasswordHash = passwordHash;
-            userProfile.PasswordSalt = salt;
-
-            RefreshToken newRefreshToken = _tokenGeneratorService.GenerateRefreshToken();
-            await _userRepository.UpdateRefreshToken(userProfile.Id, newRefreshToken);
-
             return Results.Ok(new {
                 userId = userProfile.Id,
                 accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
-                refreshToken = newRefreshToken.Token
+                refreshToken = refreshToken
             });
         }
         catch (Exception exception) {

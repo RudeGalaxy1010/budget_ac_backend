@@ -25,18 +25,21 @@ public static class AuthBuilder {
         builder.Services.TryAddSingleton<IValidator<LoginUserRequestData>>(new LoginRequestDataValidator());
         builder.Services.TryAddSingleton<IValidator<RefreshTokenRequestData>>(new RefreshTokenRequestValidator());
 
-        List<IUserProfile> userProfiles = new List<IUserProfile>();
+        List<User> userProfiles = new List<User>();
 
         // Test user
         // Login: john.doe@gmail.com
         // Password: string
         if (builder.Environment.IsDevelopment()) {
-            userProfiles.Add(new UserProfile {
-                Id = "b7d753b1-2200-4fe1-ad98-efe046ae9f82",
+            userProfiles.Add(new User {
+                Id = -1,
                 Name = "John Doe",
                 Email = "john.doe@gmail.com",
                 PasswordHash = [30, 45, 115, 9, 174, 46, 251, 240, 12, 83, 14, 124, 209, 15, 118, 218],
-                PasswordSalt = [221, 126, 68, 171, 79, 190, 50, 187, 252, 113, 105, 127, 203, 117, 8, 229]
+                Salt = [221, 126, 68, 171, 79, 190, 50, 187, 252, 113, 105, 127, 203, 117, 8, 229],
+                RegisteredAt = DateTime.UtcNow,
+                RefreshToken = "##########",
+                RefreshExpiresAt = DateTime.UtcNow
             });
         }
 

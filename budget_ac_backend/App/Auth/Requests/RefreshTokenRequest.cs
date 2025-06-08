@@ -1,5 +1,4 @@
-﻿using budget_ac_backend.App.Auth.Data;
-using budget_ac_backend.App.Auth.Requests.Data;
+﻿using budget_ac_backend.App.Auth.Requests.Data;
 using budget_ac_backend.App.Auth.Services;
 using budget_ac_backend.App.Data;
 using budget_ac_backend.App.Repository;
@@ -28,7 +27,6 @@ public class RefreshTokenRequest {
         try {
             Log.Information($"{nameof(RefreshTokenRequest)} from " +
                             $"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}, params: {request}");
-            string refreshToken = request.RefreshToken;
 
             ValidationResult result = await _validator.ValidateAsync(request);
 
@@ -36,24 +34,20 @@ public class RefreshTokenRequest {
                 return Results.BadRequest(new { error = ErrorMessages.InvalidData });
             }
 
-            RefreshToken token = await _userRepository.GetRefreshToken(refreshToken);
+            User? userProfile = await _userRepository.GetUserByRefreshToken(request.RefreshToken);
 
-            if (DateTime.UtcNow > token.ExpiresAt) {
-                return Results.BadRequest(new { error = ErrorMessages.TokenExpired });
-            }
-            
-            IUserProfile? userProfile = await _userRepository.GetUserByRefreshToken(token);
-
-            if (userProfile == null) {
+            if (userProfile == null || DateTime.UtcNow > userProfile.RefreshExpiresAt.ToUniversalTime()) {
                 return Results.BadRequest(new { error = ErrorMessages.TokenExpired });
             }
 
-            RefreshToken newRefreshToken = _tokenGeneratorService.GenerateRefreshToken();
-            await _userRepository.UpdateRefreshToken(userProfile.Id, newRefreshToken);
+            string refreshToken = _tokenGeneratorService.GenerateRefreshToken();
+            DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
+            userProfile.RefreshToken = refreshToken;
+            userProfile.RefreshExpiresAt = refreshTokenExpirationDate;
 
             return Results.Ok(new {
                 accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
-                refreshToken = newRefreshToken.Token
+                refreshToken = refreshToken
             });
         }
         catch (Exception) {

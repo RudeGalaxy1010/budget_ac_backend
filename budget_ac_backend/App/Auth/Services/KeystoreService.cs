@@ -3,7 +3,7 @@
 namespace budget_ac_backend.App.Auth.Services;
 
 public class KeystoreService : IKeystoreService {
-    private const string KeyPropertyName = "secretKey";
+    private const string KeyPropertyName = "SecretKey";
 
     private readonly ConfigurationManager _configurationManager;
 

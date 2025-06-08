@@ -1,5 +1,4 @@
-﻿using budget_ac_backend.App.Auth.Data;
-using budget_ac_backend.App.Auth.Requests.Data;
+﻿using budget_ac_backend.App.Auth.Requests.Data;
 using budget_ac_backend.App.Auth.Services;
 using budget_ac_backend.App.Data;
 using budget_ac_backend.App.Repository;
@@ -37,23 +36,22 @@ public class LoginUserRequest {
                 return Results.BadRequest(new { error = ErrorMessages.InvalidData });
             }
 
-            IUserProfile? userProfile = await _userRepository.GetUserByEmail(request.Email);
+            User? userProfile = await _userRepository.GetUserByEmail(request.Email);
 
             if (userProfile == null) {
                 return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
             }
 
-            if (!_passwordHashService.VerifyPassword(request.Password, userProfile.PasswordSalt, userProfile.PasswordHash)) {
+            if (!_passwordHashService.VerifyPassword(request.Password, userProfile.Salt, userProfile.PasswordHash)) {
                 return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
             }
 
-            RefreshToken newRefreshToken = _tokenGeneratorService.GenerateRefreshToken();
-            await _userRepository.UpdateRefreshToken(userProfile.Id, newRefreshToken);
+            userProfile.RefreshToken = _tokenGeneratorService.GenerateRefreshToken();
 
             return Results.Ok(new {
                 userId = userProfile.Id,
                 accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
-                refreshToken = newRefreshToken.Token
+                refreshToken = userProfile.RefreshToken
             });
         }
         catch (Exception) {
