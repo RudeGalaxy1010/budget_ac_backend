@@ -28,6 +28,7 @@ if (app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 
 // Middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 
 // Repository
