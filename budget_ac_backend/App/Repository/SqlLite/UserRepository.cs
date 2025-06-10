@@ -1,25 +1,32 @@
 ﻿using budget_ac_backend.App.Data;
+using budget_ac_backend.App.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace budget_ac_backend.App.Repository.SqlLite;
 
 public class UserRepository : IUserRepository {
-    private readonly AppDbContext _appDbContext;
+    private readonly AppDbContext _context;
 
-    public UserRepository(AppDbContext appDbContext) {
-        _appDbContext = appDbContext;
+    public UserRepository(AppDbContext context) {
+        _context = context;
     }
 
     public async Task<User?> GetUserById(int id) {
-        return await _appDbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+        return await _context.Users.FirstOrDefaultAsync(user => user.Id == id);
     }
 
     public async Task<User?> GetUserByEmail(string email) {
-        return await _appDbContext.Users.FirstOrDefaultAsync(user => user.Email == email);
+        return await _context.Users.FirstOrDefaultAsync(user => user.Email == email);
     }
 
     public async Task<User?> GetUserByRefreshToken(string refreshToken) {
-        return await _appDbContext.Users.FirstOrDefaultAsync(user => user.RefreshToken == refreshToken);
+        return await _context.Users.FirstOrDefaultAsync(user => user.RefreshToken == refreshToken);
+    }
+
+    public async Task UpdateUser(User user) {
+        user.ThrowIfArgumentNull();
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<User?> CreateUser(string email, byte[] salt, byte[] passwordHash, string refreshToken, DateTime refreshTokenExpiresAt) {
@@ -33,12 +40,12 @@ public class UserRepository : IUserRepository {
             RefreshExpiresAt = refreshTokenExpiresAt
         };
 
-        _appDbContext.Users.Add(user);
-        await _appDbContext.SaveChangesAsync();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
         return user;
     }
 
     public async Task SaveChangesAsync() {
-        await _appDbContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 }

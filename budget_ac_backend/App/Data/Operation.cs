@@ -1,12 +1,15 @@
-﻿namespace budget_ac_backend.App.Data;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace budget_ac_backend.App.Data;
 
 public class Operation {
-    public required int Id { get; set; }
-    public int OwnerId { get; init; }
-    public required User Owner { get; set; }
-    public int CategoryId { get; init; }
-    public required OperationCategory Category { get; set; }
+    [Key] public int Id { get; init; }
+    public required int UserId { get; init; }
+    public required int CategoryId { get; set; }
     public required decimal Money { get; set; }
     public required DateTime Date { get; set; }
-    public string? Description { get; set; }
+    [MaxLength(256)] public required string Description { get; set; }
+
+    public User User { get; set; } = null!;
+    public Category Category { get; set; } = null!;
 }

@@ -26,7 +26,7 @@ public class LoginUserRequest {
         _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
     }
 
-    public async Task<IResult> Login(HttpContext context, LoginUserRequestData request) {
+    public async Task<IResult> Handle(HttpContext context, LoginUserRequestData request) {
         try {
             Log.Information($"{nameof(LoginUserRequest)} from " +
                             $"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}, params: {request}");
@@ -36,23 +36,23 @@ public class LoginUserRequest {
                 return Results.BadRequest(new { error = ErrorMessages.InvalidData });
             }
 
-            User? userProfile = await _userRepository.GetUserByEmail(request.Email);
+            User? user = await _userRepository.GetUserByEmail(request.Email);
 
-            if (userProfile == null) {
+            if (user == null) {
                 return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
             }
 
-            if (!_passwordHashService.VerifyPassword(request.Password, userProfile.Salt, userProfile.PasswordHash)) {
+            if (!_passwordHashService.VerifyPassword(request.Password, user.Salt, user.PasswordHash)) {
                 return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
             }
 
-            userProfile.RefreshToken = _tokenGeneratorService.GenerateRefreshToken();
-            await _userRepository.SaveChangesAsync();
+            user.RefreshToken = _tokenGeneratorService.GenerateRefreshToken();
+            await _userRepository.UpdateUser(user);
 
             return Results.Ok(new {
-                userId = userProfile.Id,
-                accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
-                refreshToken = userProfile.RefreshToken
+                userId = user.Id,
+                accessToken = _tokenGeneratorService.GenerateAuthToken(user),
+                refreshToken = user.RefreshToken
             });
         }
         catch (Exception) {

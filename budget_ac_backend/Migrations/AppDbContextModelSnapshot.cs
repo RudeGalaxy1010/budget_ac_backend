@@ -17,6 +17,32 @@ namespace budget_ac_backend.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.16");
 
+            modelBuilder.Entity("budget_ac_backend.App.Data.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OperationCategories");
+                });
+
             modelBuilder.Entity("budget_ac_backend.App.Data.Operation", b =>
                 {
                     b.Property<int>("Id")
@@ -30,48 +56,23 @@ namespace budget_ac_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Money")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("OwnerId")
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Operations");
-                });
-
-            modelBuilder.Entity("budget_ac_backend.App.Data.OperationCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.ToTable("OperationCategories");
                 });
 
             modelBuilder.Entity("budget_ac_backend.App.Data.User", b =>
@@ -92,6 +93,7 @@ namespace budget_ac_backend.Migrations
 
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
+                        .HasMaxLength(32)
                         .HasColumnType("BLOB");
 
                     b.Property<DateTime>("RefreshExpiresAt")
@@ -107,6 +109,7 @@ namespace budget_ac_backend.Migrations
 
                     b.Property<byte[]>("Salt")
                         .IsRequired()
+                        .HasMaxLength(32)
                         .HasColumnType("BLOB");
 
                     b.HasKey("Id");
@@ -114,34 +117,46 @@ namespace budget_ac_backend.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("budget_ac_backend.App.Data.Category", b =>
+                {
+                    b.HasOne("budget_ac_backend.App.Data.User", "User")
+                        .WithMany("Categories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("budget_ac_backend.App.Data.Operation", b =>
                 {
-                    b.HasOne("budget_ac_backend.App.Data.OperationCategory", "Category")
-                        .WithMany()
+                    b.HasOne("budget_ac_backend.App.Data.Category", "Category")
+                        .WithMany("Operations")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("budget_ac_backend.App.Data.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
+                    b.HasOne("budget_ac_backend.App.Data.User", "User")
+                        .WithMany("Operations")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
 
-                    b.Navigation("Owner");
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("budget_ac_backend.App.Data.OperationCategory", b =>
+            modelBuilder.Entity("budget_ac_backend.App.Data.Category", b =>
                 {
-                    b.HasOne("budget_ac_backend.App.Data.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Operations");
+                });
 
-                    b.Navigation("Creator");
+            modelBuilder.Entity("budget_ac_backend.App.Data.User", b =>
+                {
+                    b.Navigation("Categories");
+
+                    b.Navigation("Operations");
                 });
 #pragma warning restore 612, 618
         }

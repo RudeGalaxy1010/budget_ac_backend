@@ -6,6 +6,7 @@ public interface IUserRepository {
     Task<User?> GetUserById(int id);
     Task<User?> GetUserByEmail(string email);
     Task<User?> GetUserByRefreshToken(string refreshToken);
+    Task UpdateUser(User user);
 
     Task<User?> CreateUser(
         string email,
@@ -13,6 +14,4 @@ public interface IUserRepository {
         byte[] passwordHash,
         string refreshToken,
         DateTime refreshTokenExpiresAt);
-
-    Task SaveChangesAsync();
 }

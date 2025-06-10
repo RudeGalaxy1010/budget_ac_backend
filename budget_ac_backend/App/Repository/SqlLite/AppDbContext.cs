@@ -3,56 +3,67 @@ using Microsoft.EntityFrameworkCore;
 
 namespace budget_ac_backend.App.Repository.SqlLite;
 
-public class AppDbContext : DbContext {
+public sealed class AppDbContext : DbContext {
+    private const string? UserOperationCategoriesTableName = "UserOperationCategories";
+
     public DbSet<User> Users => Set<User>();
-    public DbSet<OperationCategory> OperationCategories => Set<OperationCategory>();
+    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Operation> Operations => Set<Operation>();
 
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {
+        Database.EnsureCreated();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(u => u.Id);
+        modelBuilder.Entity<User>(entity => {
+            entity.HasKey(e => e.Id);
 
-            entity.Property(u => u.Name).HasMaxLength(64).IsRequired();
-            entity.Property(u => u.Email).HasMaxLength(64).IsRequired();
-            entity.Property(u => u.Salt).IsRequired();
-            entity.Property(u => u.PasswordHash).IsRequired();
-            entity.Property(u => u.RegisteredAt).IsRequired();
-            entity.Property(u => u.RefreshToken).HasMaxLength(32).IsRequired();
-            entity.Property(u => u.RefreshExpiresAt).IsRequired();
-        });
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(64);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(64);
+            entity.Property(e => e.Salt).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.RegisteredAt).IsRequired();
+            entity.Property(e => e.RefreshToken).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.RefreshExpiresAt).IsRequired();
 
-        modelBuilder.Entity<OperationCategory>(entity =>
-        {
-            entity.HasKey(c => c.Id);
+            entity.HasMany(e => e.Categories)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            entity.Property(c => c.Name).HasMaxLength(64).IsRequired();
-            entity.Property(c => c.Description).HasMaxLength(256);
-            
-            entity.HasOne(c => c.Creator)
-                .WithMany()
-                .HasForeignKey(c => c.CreatorId)
+            entity.HasMany(e => e.Operations)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Operation>(entity =>
-        {
-            entity.HasKey(o => o.Id);
+        modelBuilder.Entity<Category>(entity => {
+            entity.HasKey(e => e.Id);
 
-            entity.Property(o => o.Money).IsRequired();
-            entity.Property(o => o.Date).IsRequired();
-            entity.Property(o => o.Description).HasMaxLength(256);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(64);
+            entity.Property(e => e.Description).HasMaxLength(256);
 
-            entity.HasOne(o => o.Owner)
-                .WithMany()
-                .HasForeignKey(o => o.OwnerId)
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Categories)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Operation>(entity => {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Money).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(256);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Operations)
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(o => o.Category)
-                .WithMany()
-                .HasForeignKey(o => o.CategoryId)
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.Operations)
+                .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

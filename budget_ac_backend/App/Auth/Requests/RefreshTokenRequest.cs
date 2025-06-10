@@ -23,7 +23,7 @@ public class RefreshTokenRequest {
         _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
     }
 
-    public async Task<IResult> Refresh(HttpContext context, RefreshTokenRequestData request) {
+    public async Task<IResult> Handle(HttpContext context, RefreshTokenRequestData request) {
         try {
             Log.Information($"{nameof(RefreshTokenRequest)} from " +
                             $"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}, params: {request}");
@@ -34,20 +34,20 @@ public class RefreshTokenRequest {
                 return Results.BadRequest(new { error = ErrorMessages.InvalidData });
             }
 
-            User? userProfile = await _userRepository.GetUserByRefreshToken(request.RefreshToken);
+            User? user = await _userRepository.GetUserByRefreshToken(request.RefreshToken);
 
-            if (userProfile == null || DateTime.UtcNow > userProfile.RefreshExpiresAt.ToUniversalTime()) {
+            if (user == null || DateTime.UtcNow > user.RefreshExpiresAt.ToUniversalTime()) {
                 return Results.BadRequest(new { error = ErrorMessages.TokenExpired });
             }
 
             string refreshToken = _tokenGeneratorService.GenerateRefreshToken();
             DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
-            userProfile.RefreshToken = refreshToken;
-            userProfile.RefreshExpiresAt = refreshTokenExpirationDate;
-            await _userRepository.SaveChangesAsync();
+            user.RefreshToken = refreshToken;
+            user.RefreshExpiresAt = refreshTokenExpirationDate;
+            await _userRepository.UpdateUser(user);
 
             return Results.Ok(new {
-                accessToken = _tokenGeneratorService.GenerateAuthToken(userProfile),
+                accessToken = _tokenGeneratorService.GenerateAuthToken(user),
                 refreshToken = refreshToken
             });
         }

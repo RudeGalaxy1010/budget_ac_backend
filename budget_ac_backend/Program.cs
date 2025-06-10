@@ -1,4 +1,5 @@
 using budget_ac_backend.App.Auth;
+using budget_ac_backend.App.BL;
 using budget_ac_backend.App.Logging;
 using budget_ac_backend.App.Middleware;
 using budget_ac_backend.App.Repository;
@@ -34,11 +35,14 @@ app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 // Repository
 SqliteMap sqliteMap = new SqliteMap(app);
 AppDbContext appDbContext = app.Services.CreateScope().ServiceProvider.GetService<AppDbContext>().ThrowIfArgumentNull();
-IUserRepository userRepository = await sqliteMap.AddRepository(appDbContext);
+(IUserRepository UserRepository, ICategoryRepository OperationCategoryRepository) repositories = await sqliteMap.AddRepositories(appDbContext);
 
 // Requests
-AuthMap authMap = new AuthMap(app, userRepository);
+AuthMap authMap = new AuthMap(app, repositories.UserRepository);
 authMap.MapRoutes();
+
+BLMap blMap = new BLMap(app, repositories.UserRepository, repositories.OperationCategoryRepository);
+blMap.MapRequests();
 
 // Startup
 app.Lifetime.ApplicationStarted.Register(() => {
