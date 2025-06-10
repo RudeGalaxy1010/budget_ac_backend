@@ -30,6 +30,7 @@ app.UseHttpsRedirection();
 
 // Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 
 // Repository

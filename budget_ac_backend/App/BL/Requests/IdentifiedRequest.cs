@@ -10,8 +10,8 @@ public abstract class IdentifiedRequest<T> {
             throw new ArgumentException($"Invalid user id: {sub}");
         }
 
-        return await OnHandle(context, userId, request);
+        return await OnHandle(userId, request);
     }
 
-    protected abstract Task<IResult> OnHandle(HttpContext context, int userId, T request);
+    protected abstract Task<IResult> OnHandle(int userId, T request);
 }

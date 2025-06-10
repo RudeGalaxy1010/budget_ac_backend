@@ -35,13 +35,13 @@ public class AuthMap {
     }
 
     public void MapRoutes() {
-        _app.MapPost(CreateUserRoute, (HttpContext context, CreateUserRequestData request) =>
-            _createUserRequest.Handle(context, request)).AllowAnonymous();
+        _app.MapPost(CreateUserRoute, (CreateUserRequestData request) =>
+            _createUserRequest.Handle(request)).AllowAnonymous();
 
-        _app.MapPost(LoginRoute, (HttpContext context, LoginUserRequestData request) =>
-            _loginUserRequest.Handle(context, request)).AllowAnonymous();
+        _app.MapPost(LoginRoute, (LoginUserRequestData request) =>
+            _loginUserRequest.Handle(request)).AllowAnonymous();
 
-        _app.MapPost(RefreshTokenRoute, (HttpContext context, RefreshTokenRequestData request) =>
-            _refreshTokenRequest.Handle(context, request)).AllowAnonymous();
+        _app.MapPost(RefreshTokenRoute, (RefreshTokenRequestData request) =>
+            _refreshTokenRequest.Handle(request)).AllowAnonymous();
     }
 }

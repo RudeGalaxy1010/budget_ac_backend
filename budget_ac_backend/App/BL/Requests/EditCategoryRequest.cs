@@ -4,7 +4,6 @@ using budget_ac_backend.App.Repository;
 using budget_ac_backend.App.Utils;
 using FluentValidation;
 using FluentValidation.Results;
-using Serilog;
 
 namespace budget_ac_backend.App.BL.Requests;
 
@@ -19,9 +18,7 @@ public class EditCategoryRequest : IdentifiedRequest<EditCategoryRequestData> {
         _validator = validator.ThrowIfArgumentNull();
     }
 
-    protected override async Task<IResult> OnHandle(HttpContext context, int userId, EditCategoryRequestData request) {
-        Log.Information($"{nameof(CreateCategoryRequest)} from " +
-                        $"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}, params: {request}");
+    protected override async Task<IResult> OnHandle(int userId, EditCategoryRequestData request) {
         ValidationResult validationResult = await _validator.ValidateAsync(request);
 
         if (!validationResult.IsValid) {
