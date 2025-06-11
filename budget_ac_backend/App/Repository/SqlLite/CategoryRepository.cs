@@ -19,8 +19,8 @@ public class CategoryRepository : ICategoryRepository {
         return await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
     }
 
-    public async Task<List<Category>> GetCategories(int userId) {
-        return await _context.Categories.Where(c => c.UserId == userId).ToListAsync();
+    public async Task<List<Category>> GetCategories(int userId, int offset, int limit) {
+        return await _context.Categories.Where(c => c.UserId == userId).Skip(limit).Take(limit).ToListAsync();
     }
 
     public async Task<Category> CreateCategory(string name, string description, int userId) {
@@ -43,13 +43,13 @@ public class CategoryRepository : ICategoryRepository {
             User = user
         };
 
-        _context.Categories.Add(category);
+        await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
         return category;
     }
 
     public async Task DeleteCategory(int id) {
-        Category? category = await _context.Categories.FirstOrDefaultAsync(category => category.Id == id);
+        Category? category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null) {
             throw new ArgumentException(ErrorMessages.CategoryNotFound);

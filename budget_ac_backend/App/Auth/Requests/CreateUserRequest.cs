@@ -44,7 +44,6 @@ public class CreateUserRequest {
         }
 
         return Results.Ok(new {
-            userId = user.Id,
             accessToken = _tokenGeneratorService.GenerateAuthToken(user),
             refreshToken = refreshToken
         });

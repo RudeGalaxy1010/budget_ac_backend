@@ -46,7 +46,6 @@ public class LoginUserRequest {
         await _userRepository.UpdateUser(user);
 
         return Results.Ok(new {
-            userId = user.Id,
             accessToken = _tokenGeneratorService.GenerateAuthToken(user),
             refreshToken = user.RefreshToken
         });

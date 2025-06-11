@@ -23,12 +23,10 @@ public class GetCategoriesRequest : IdentifiedRequest<GetCategoriesRequestData> 
             return Results.BadRequest(new { error = ErrorMessages.InvalidData });
         }
 
-        List<Category> categories = await _categoryRepository.GetCategories(userId);
+        List<Category> categories = await _categoryRepository.GetCategories(userId, request.Offset, request.Limit);
 
         return Results.Ok(new {
             categories = categories
-                .Skip(request.Offset)
-                .Take(request.Limit)
                 .Select(category => new {
                     Id = category.Id,
                     Name = category.Name,

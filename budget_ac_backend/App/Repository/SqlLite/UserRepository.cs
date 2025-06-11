@@ -12,15 +12,15 @@ public class UserRepository : IUserRepository {
     }
 
     public async Task<User?> GetUserById(int id) {
-        return await _context.Users.FirstOrDefaultAsync(user => user.Id == id);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User?> GetUserByEmail(string email) {
-        return await _context.Users.FirstOrDefaultAsync(user => user.Email == email);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetUserByRefreshToken(string refreshToken) {
-        return await _context.Users.FirstOrDefaultAsync(user => user.RefreshToken == refreshToken);
+        return await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
     }
 
     public async Task UpdateUser(User user) {
@@ -40,7 +40,7 @@ public class UserRepository : IUserRepository {
             RefreshExpiresAt = refreshTokenExpiresAt
         };
 
-        _context.Users.Add(user);
+        await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
         return user;
     }
