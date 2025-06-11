@@ -12,6 +12,6 @@ public class User {
     [MaxLength(32)] public required string RefreshToken { get; set; }
     public required DateTime RefreshExpiresAt { get; set; }
 
-    public ICollection<Category> Categories { get; set; } = new List<Category>();
-    public ICollection<Operation> Operations { get; set; } = new List<Operation>();
+    public ICollection<Category> Categories { get; init; } = new List<Category>();
+    public ICollection<Operation> Operations { get; init; } = new List<Operation>();
 }

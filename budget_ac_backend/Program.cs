@@ -36,13 +36,14 @@ app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 // Repository
 SqliteMap sqliteMap = new SqliteMap(app);
 AppDbContext appDbContext = app.Services.CreateScope().ServiceProvider.GetService<AppDbContext>().ThrowIfArgumentNull();
-(IUserRepository UserRepository, ICategoryRepository OperationCategoryRepository) repositories = await sqliteMap.AddRepositories(appDbContext);
+(IUserRepository UserRepository, ICategoryRepository CategoryRepository, IOperationRepository OperationRepository) repositories =
+    await sqliteMap.AddRepositories(appDbContext);
 
 // Requests
 AuthMap authMap = new AuthMap(app, repositories.UserRepository);
 authMap.MapRoutes();
 
-BLMap blMap = new BLMap(app, repositories.UserRepository, repositories.OperationCategoryRepository);
+BLMap blMap = new BLMap(app, repositories.UserRepository, repositories.CategoryRepository, repositories.OperationRepository);
 blMap.MapRequests();
 
 // Startup

@@ -10,6 +10,6 @@ public class Operation {
     public required DateTime Date { get; set; }
     [MaxLength(256)] public required string Description { get; set; }
 
-    public User User { get; set; } = null!;
-    public Category Category { get; set; } = null!;
+    public User User { get; init; } = null!;
+    public Category Category { get; init; } = null!;
 }

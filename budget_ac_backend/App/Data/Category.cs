@@ -8,6 +8,6 @@ public class Category {
     [MaxLength(256)] public required string Description { get; set; }
     public required int UserId { get; init; }
 
-    public User User { get; set; } = null!;
-    public ICollection<Operation> Operations { get; set; } = new List<Operation>();
+    public User User { get; init; } = null!;
+    public ICollection<Operation> Operations { get; init; } = new List<Operation>();
 }

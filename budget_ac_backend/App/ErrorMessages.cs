@@ -12,4 +12,8 @@ public class ErrorMessages {
     public const string CategoryAlreadyExists = "Category already exists";
     public const string CategoryHasNoChanges = "Category has no changes";
     public const string SameCategoryAlreadyExists = "Same category already exists";
+    
+    public const string OperationAlreadyExists = "Operation already exists";
+    public const string OperationNotFound = "Operation not found";
+    public const string OperationHasNoChanges = "Operation has no changes";
 }
