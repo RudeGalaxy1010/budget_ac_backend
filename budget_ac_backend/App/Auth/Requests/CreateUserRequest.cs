@@ -32,15 +32,21 @@ public class CreateUserRequest {
             return Results.BadRequest(new { error = ErrorMessages.InvalidData });
         }
 
+        User? user = await _userRepository.GetUserByEmail(request.Email);
+
+        if (user != null) {
+            return Results.BadRequest(new { error = ErrorMessages.UserAlreadyExists });
+        }
+
         byte[] salt = _passwordHashService.GenerateSalt();
         byte[] passwordHash = _passwordHashService.HashPassword(request.Password, salt);
         string refreshToken = _tokenGeneratorService.GenerateRefreshToken();
         DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
 
-        User? user = await _userRepository.CreateUser(request.Email, salt, passwordHash, refreshToken, refreshTokenExpirationDate);
+        user = await _userRepository.CreateUser(request.Email, salt, passwordHash, refreshToken, refreshTokenExpirationDate);
 
         if (user == null) {
-            return Results.BadRequest(new { error = ErrorMessages.UserAlreadyExists });
+            return Results.BadRequest(new { error = ErrorMessages.UnexpectedError });
         }
 
         return Results.Ok(new {

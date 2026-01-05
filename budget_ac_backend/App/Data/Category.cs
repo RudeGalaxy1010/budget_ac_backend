@@ -3,10 +3,9 @@
 namespace budget_ac_backend.App.Data;
 
 public class Category {
-    [Key] public int Id { get; init; }
+    [Key] public long Id { get; init; }
     [MaxLength(64)] public required string Name { get; set; }
-    [MaxLength(256)] public required string Description { get; set; }
-    public required int UserId { get; init; }
+    public required long UserId { get; init; }
 
     public User User { get; init; } = null!;
     public ICollection<Operation> Operations { get; init; } = new List<Operation>();

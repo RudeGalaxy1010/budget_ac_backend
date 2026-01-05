@@ -41,7 +41,6 @@ public sealed class AppDbContext : DbContext {
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Name).IsRequired().HasMaxLength(64);
-            entity.Property(e => e.Description).HasMaxLength(256);
 
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Categories)
@@ -54,7 +53,6 @@ public sealed class AppDbContext : DbContext {
 
             entity.Property(e => e.Money).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(e => e.Date).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(256);
 
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Operations)

@@ -26,14 +26,11 @@ public class GetOperationsRequest : IdentifiedRequest<GetOperationsRequestData> 
         }
 
         List<Operation> operations = await _operationRepository.GetOperations(userId, request.From, request.To);
-        return Results.Ok(new {
-            operations = operations.Select(o => new {
-                id = o.Id,
-                Money = o.Money,
-                Date = o.Date,
-                CategoryName = o.Category.Name,
-                Description = o.Description,
-            })
-        });
+        return Results.Ok(operations.Select(o => new {
+            Id = o.Id,
+            Money = o.Money,
+            Date = o.Date,
+            CategoryName = o.Category.Name
+        }));
     }
 }

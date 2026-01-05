@@ -11,12 +11,14 @@ public class AuthMap {
     private const string CreateUserRoute = "/auth/register";
     private const string LoginRoute = "/auth/login";
     private const string RefreshTokenRoute = "/auth/refresh";
+    private const string CheckTokenRoute = "/auth/check";
 
     private readonly WebApplication _app;
 
     private readonly CreateUserRequest _createUserRequest;
     private readonly LoginUserRequest _loginUserRequest;
     private readonly RefreshTokenRequest _refreshTokenRequest;
+    private readonly CheckTokenRequest _checkTokenRequest;
 
     public AuthMap(WebApplication app, IUserRepository userRepository) {
         _app = app;
@@ -32,6 +34,7 @@ public class AuthMap {
         _createUserRequest = new CreateUserRequest(createUserDataValidator, userRepository, passwordHashService, tokenGeneratorService);
         _loginUserRequest = new LoginUserRequest(loginDataValidator, userRepository, passwordHashService, tokenGeneratorService);
         _refreshTokenRequest = new RefreshTokenRequest(refreshTokenDataValidator, userRepository, tokenGeneratorService);
+        _checkTokenRequest = new CheckTokenRequest(userRepository);
     }
 
     public void MapRoutes() {
@@ -43,5 +46,7 @@ public class AuthMap {
 
         _app.MapPost(RefreshTokenRoute, (RefreshTokenRequestData request) =>
             _refreshTokenRequest.Handle(request)).AllowAnonymous();
+
+        _app.MapGet(CheckTokenRoute, (Delegate)_checkTokenRequest.Handle).AllowAnonymous();
     }
 }

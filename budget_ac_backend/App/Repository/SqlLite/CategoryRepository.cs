@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace budget_ac_backend.App.Repository.SqlLite;
 
-public class CategoryRepository : ICategoryRepository {
+public class CategoryRepository {
     private readonly AppDbContext _context;
 
     public CategoryRepository(AppDbContext context) {
@@ -23,9 +23,8 @@ public class CategoryRepository : ICategoryRepository {
         return await _context.Categories.Where(c => c.UserId == userId).Skip(limit).Take(limit).ToListAsync();
     }
 
-    public async Task<Category> CreateCategory(string name, string description, int userId) {
+    public async Task<Category> CreateCategory(string name, int userId) {
         name.ThrowIfNullOrWhiteSpace(nameof(name));
-        description.ThrowIfNullOrWhiteSpace(nameof(description));
         userId.ThrowIfArgumentNull();
 
         User? user = await _context.Users
@@ -38,7 +37,6 @@ public class CategoryRepository : ICategoryRepository {
 
         Category category = new Category {
             Name = name,
-            Description = description,
             UserId = userId,
             User = user
         };

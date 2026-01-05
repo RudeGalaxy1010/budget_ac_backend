@@ -3,7 +3,7 @@
 namespace budget_ac_backend.App.Data;
 
 public class User {
-    [Key] public int Id { get; init; }
+    [Key] public long Id { get; init; }
     [MaxLength(64)] public required string Name { set; get; }
     [MaxLength(64)] public required string Email { get; set; }
     public required byte[] Salt { get; set; }

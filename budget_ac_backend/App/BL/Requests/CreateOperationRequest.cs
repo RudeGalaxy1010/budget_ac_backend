@@ -1,4 +1,5 @@
 ﻿using budget_ac_backend.App.BL.Requests.Data;
+using budget_ac_backend.App.Data;
 using budget_ac_backend.App.Repository;
 using budget_ac_backend.App.Utils;
 using FluentValidation;
@@ -24,7 +25,17 @@ public class CreateOperationRequest : IdentifiedRequest<CreateOperationsRequestD
             return Results.BadRequest(new { error = ErrorMessages.InvalidData });
         }
 
-        await _operationRepository.CreateOperation(userId, request.CategoryId, request.Money, DateTime.UtcNow, request.Description);
-        return Results.Ok();
+        Operation operation = await _operationRepository.CreateOperation(
+            userId,
+            request.CategoryName,
+            request.Money,
+            request.Date);
+
+        return Results.Ok(new {
+            Id = operation.Id,
+            CategoryName = operation.Category.Name,
+            Money = operation.Money,
+            Date = operation.Date
+        });
     }
 }

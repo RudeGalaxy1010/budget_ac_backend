@@ -15,14 +15,21 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("secrets.json", false, true);
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowFrontend", policy => {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // если используешь cookies / auth
+    });
+});
 builder.Services.AddSwaggerGen();
-
-builder.AllowCORSAnyOrigin();
 builder.AddSqlite();
 builder.AddAuth();
 
 WebApplication app = builder.Build();
-app.UseCORSAnyOriginPolicy();
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
@@ -39,7 +46,7 @@ app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 // Repository
 SqliteMap sqliteMap = new SqliteMap(app);
 AppDbContext appDbContext = app.Services.CreateScope().ServiceProvider.GetService<AppDbContext>().ThrowIfArgumentNull();
-(IUserRepository UserRepository, ICategoryRepository CategoryRepository, IOperationRepository OperationRepository)
+(IUserRepository UserRepository, IOperationRepository OperationRepository)
     repositories =
         await sqliteMap.AddRepositories(appDbContext);
 
@@ -47,8 +54,7 @@ AppDbContext appDbContext = app.Services.CreateScope().ServiceProvider.GetServic
 AuthMap authMap = new AuthMap(app, repositories.UserRepository);
 authMap.MapRoutes();
 
-BLMap blMap = new BLMap(app, repositories.UserRepository, repositories.CategoryRepository,
-    repositories.OperationRepository);
+BlMap blMap = new BlMap(app, repositories.UserRepository, repositories.OperationRepository);
 blMap.MapRequests();
 
 // Startup

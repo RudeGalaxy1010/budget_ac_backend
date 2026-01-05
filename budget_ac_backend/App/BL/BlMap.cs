@@ -7,47 +7,29 @@ using FluentValidation;
 
 namespace budget_ac_backend.App.BL;
 
-public class BLMap {
-    private const string CreateCategory = "/categories/create";
-    private const string EditCategory = "/categories/edit";
-    private const string GetCategory = "/categories/get";
-    private const string DeleteCategory = "/categories/delete";
-
+public class BlMap {
     private const string CreateOperation = "/operations/create";
     private const string GetOperations = "/operations/get";
     private const string EditOperation = "/operations/edit";
     private const string DeleteOperation = "/operations/delete";
 
-    private readonly WebApplication _app;
+    private const string GetYearlyStatistics = "/statistics/yearly";
+    private const string GetTopCategories = "/statistics/topcategories";
 
-    private readonly CreateCategoryRequest _createCategoryRequest;
-    private readonly EditCategoryRequest _editCategoryRequest;
-    private readonly GetCategoriesRequest _getCategoriesRequest;
-    private readonly DeleteCategoryRequest _deleteCategoryRequest;
+    private readonly WebApplication _app;
 
     private readonly CreateOperationRequest _createOperationRequest;
     private readonly GetOperationsRequest _getOperationsRequest;
     private readonly EditOperationRequest _editOperationRequest;
     private readonly DeleteOperationRequest _deleteOperationRequest;
 
-    public BLMap(WebApplication app, IUserRepository userRepository, ICategoryRepository categoryRepository, IOperationRepository operationRepository) {
+    private readonly GetPeriodStatisticsRequest _getPeriodStatisticsRequest;
+    private readonly GetTopCategoriesRequest _getTopCategoriesRequest;
+
+    public BlMap(WebApplication app, IUserRepository userRepository, IOperationRepository operationRepository) {
         _app = app.ThrowIfArgumentNull();
         userRepository.ThrowIfArgumentNull();
-        categoryRepository.ThrowIfArgumentNull();
         operationRepository.ThrowIfArgumentNull();
-
-        // Categories
-        IValidator<CreateCategoryRequestData> createCategoryRequestDataValidator = new CreateCategoryRequestDataValidator();
-        _createCategoryRequest = new CreateCategoryRequest(categoryRepository, createCategoryRequestDataValidator);
-
-        IValidator<EditCategoryRequestData> editCategoryRequestDataValidator = new EditCategoryRequestDataValidator();
-        _editCategoryRequest = new EditCategoryRequest(categoryRepository, editCategoryRequestDataValidator);
-
-        IValidator<GetCategoriesRequestData> getCategoriesRequestDataValidator = new GetCategoriesRequestDataValidator();
-        _getCategoriesRequest = new GetCategoriesRequest(categoryRepository, getCategoriesRequestDataValidator);
-
-        IValidator<DeleteCategoryRequestData> deleteCategoryRequestDataValidator = new DeleteCategoryRequestDataValidator();
-        _deleteCategoryRequest = new DeleteCategoryRequest(categoryRepository, deleteCategoryRequestDataValidator);
 
         // Operations
         IValidator<CreateOperationsRequestData> createOperationRequestDataValidator = new CreateOperationRequestDataValidator();
@@ -61,23 +43,15 @@ public class BLMap {
 
         IValidator<DeleteOperationRequestData> deleteOperationRequestDataValidator = new DeleteOperationRequestDataValidator();
         _deleteOperationRequest = new DeleteOperationRequest(operationRepository, deleteOperationRequestDataValidator);
+
+        IValidator<GetPeriodStatisticsRequestData> getPeriodStatisticsRequestDataValidator = new GetPeriodStatisticsRequestDataValidator();
+        _getPeriodStatisticsRequest = new GetPeriodStatisticsRequest(operationRepository, getPeriodStatisticsRequestDataValidator);
+
+        IValidator<GetTopCategoriesRequestData> getTopCategoriesRequestDataValidator = new GetTopCategoriesRequestDataValidator();
+        _getTopCategoriesRequest = new GetTopCategoriesRequest(operationRepository, getTopCategoriesRequestDataValidator);
     }
 
     public void MapRequests() {
-        // Categories
-        _app.MapPost(CreateCategory, (HttpContext context, CreateCategoryRequestData request) =>
-            _createCategoryRequest.Handle(context, request));
-
-        _app.MapPost(EditCategory, (HttpContext context, EditCategoryRequestData request) =>
-            _editCategoryRequest.Handle(context, request));
-
-        _app.MapPost(GetCategory, (HttpContext context, GetCategoriesRequestData request) =>
-            _getCategoriesRequest.Handle(context, request));
-
-        _app.MapPost(DeleteCategory, (HttpContext context, DeleteCategoryRequestData request) =>
-            _deleteCategoryRequest.Handle(context, request));
-
-        // Operations
         _app.MapPost(CreateOperation, (HttpContext context, CreateOperationsRequestData request) =>
             _createOperationRequest.Handle(context, request));
 
@@ -89,5 +63,11 @@ public class BLMap {
 
         _app.MapPost(DeleteOperation, (HttpContext context, DeleteOperationRequestData request) =>
             _deleteOperationRequest.Handle(context, request));
+
+        _app.MapPost(GetYearlyStatistics, (HttpContext context, GetPeriodStatisticsRequestData request) =>
+            _getPeriodStatisticsRequest.Handle(context, request));
+
+        _app.MapPost(GetTopCategories, (HttpContext context, GetTopCategoriesRequestData request) =>
+            _getTopCategoriesRequest.Handle(context, request));
     }
 }

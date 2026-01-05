@@ -8,16 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace budget_ac_backend.App.Auth.Services;
 
-public class TokenGeneratorService : ITokenGeneratorService {
-    private const int TokenLifeTimeInMinutes = 5;
-    private const int RefreshTokenLifeTimeInDays = 7;
+public class TokenGeneratorService(IKeystoreService keystoreService) : ITokenGeneratorService {
+    private const int TokenLifeTimeInMinutes = 120;
+    private const int RefreshTokenLifeTimeInDays = 1;
     private const int RefreshTokenSizeInBytes = 32;
 
-    private readonly IKeystoreService _keystoreService;
-
-    public TokenGeneratorService(IKeystoreService keystoreService) {
-        _keystoreService = keystoreService.ThrowIfArgumentNull();
-    }
+    private readonly IKeystoreService _keystoreService = keystoreService.ThrowIfArgumentNull();
 
     public string GenerateAuthToken(User user) {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();

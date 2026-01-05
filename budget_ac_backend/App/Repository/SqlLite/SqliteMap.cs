@@ -11,7 +11,7 @@ public class SqliteMap {
         _app = app;
     }
 
-    public async Task<(IUserRepository, ICategoryRepository, IOperationRepository)> AddRepositories(AppDbContext appDbContext) {
+    public async Task<(IUserRepository, IOperationRepository)> AddRepositories(AppDbContext appDbContext) {
         bool hasTestUser = await appDbContext.Users.AnyAsync(u => u.Id == TestUserId);
 
         // Test user
@@ -39,8 +39,7 @@ public class SqliteMap {
         }
 
         IUserRepository userRepository = new UserRepository(appDbContext);
-        ICategoryRepository categoryRepository = new CategoryRepository(appDbContext);
         IOperationRepository operationRepository = new OperationRepository(appDbContext);
-        return (userRepository, categoryRepository, operationRepository);
+        return (userRepository, operationRepository);
     }
 }

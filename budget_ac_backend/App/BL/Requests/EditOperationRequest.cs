@@ -25,20 +25,24 @@ public class EditOperationRequest : IdentifiedRequest<EditOperationRequestData> 
             return Results.BadRequest(new { error = ErrorMessages.InvalidData });
         }
 
-        Operation? operation = await _operationRepository.GetOperationById(request.OperationId);
+        Operation? operation = await _operationRepository.GetOperation(request.Id);
 
         if (operation == null || operation.UserId != userId) {
             return Results.BadRequest(new { error = ErrorMessages.OperationNotFound });
         }
 
-        if (operation.CategoryId == request.CategoryId
+        if (operation.Category.Name == request.CategoryName
             && operation.Money == request.Money
-            && operation.Date == request.Date
-            && operation.Description == request.Description) {
+            && operation.Date == request.Date) {
             return Results.BadRequest(new { error = ErrorMessages.OperationHasNoChanges });
         }
 
-        await _operationRepository.UpdateOperation(request.OperationId, request.CategoryId, request.Money, request.Date, request.Description);
-        return Results.Ok();
+        await _operationRepository.UpdateOperation(operation, request.CategoryName, request.Money, request.Date);
+        return Results.Ok(new {
+            Id = operation.Id,
+            CategoryName = operation.Category.Name,
+            Money = operation.Money,
+            Date = operation.Date
+        });
     }
 }

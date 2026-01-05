@@ -25,13 +25,13 @@ public class DeleteOperationRequest : IdentifiedRequest<DeleteOperationRequestDa
             return Results.BadRequest(new { error = ErrorMessages.InvalidData });
         }
 
-        Operation? operation = await _operationRepository.GetOperationById(request.OperationId);
+        Operation? operation = await _operationRepository.GetOperation(request.Id);
 
         if (operation == null || operation.UserId != userId) {
             return Results.BadRequest(new { error = ErrorMessages.OperationNotFound });
         }
 
-        await _operationRepository.DeleteOperation(request.OperationId);
+        await _operationRepository.DeleteOperation(operation);
         return Results.Ok();
     }
 }
