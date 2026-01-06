@@ -2,6 +2,8 @@
 using budget_ac_backend.App.Auth.Requests.Data;
 using budget_ac_backend.App.Auth.Services;
 using budget_ac_backend.App.Auth.Validation;
+using budget_ac_backend.App.Repository;
+using budget_ac_backend.App.Repository.SqlLite;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -12,16 +14,18 @@ using Microsoft.OpenApi.Models;
 namespace budget_ac_backend.App.Auth;
 
 public static class AuthBuilder {
-    public const string ThisIssuer = "budget_ac_service";
+    public const string IssuerName = "budget_ac_service";
 
     public static void AddAuth(this WebApplicationBuilder builder) {
-        KeystoreService keystoreService = new KeystoreService(builder.Configuration);
-
-        builder.Services.TryAddSingleton<IPasswordHashService>(new PasswordHashService());
-        builder.Services.TryAddSingleton<ITokenGeneratorService>(new TokenGeneratorService(keystoreService));
-        builder.Services.TryAddSingleton<IValidator<CreateUserRequestData>>(new CreateUserRequestDataValidator());
-        builder.Services.TryAddSingleton<IValidator<LoginUserRequestData>>(new LoginRequestDataValidator());
-        builder.Services.TryAddSingleton<IValidator<RefreshTokenRequestData>>(new RefreshTokenRequestValidator());
+        builder.Services.AddSingleton<IKeystoreService>(serviceProvider => {
+            IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            return new KeystoreService(configuration);
+        });
+        builder.Services.TryAddSingleton<IPasswordHashService, PasswordHashService>();
+        builder.Services.TryAddSingleton<ITokenGeneratorService, TokenGeneratorService>();
+        builder.Services.TryAddSingleton<IValidator<CreateUserRequestData>, CreateUserRequestDataValidator>();
+        builder.Services.TryAddSingleton<IValidator<LoginUserRequestData>, LoginRequestDataValidator>();
+        builder.Services.TryAddSingleton<IValidator<RefreshTokenRequestData>, RefreshTokenRequestValidator>();
 
         builder.Services.AddAuthentication(options => {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -30,13 +34,22 @@ public static class AuthBuilder {
             .AddJwtBearer(options => {
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
+
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        IKeystoreService keystore = context.HttpContext.RequestServices.GetRequiredService<IKeystoreService>();
+                        string key = keystore.GetSecretKey();
+                        context.Options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
+                        return Task.CompletedTask;
+                    }
+                };
+
                 options.TokenValidationParameters = new TokenValidationParameters {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(keystoreService.GetSecretKey())),
                     ValidateIssuer = true,
-                    ValidIssuer = ThisIssuer,
+                    ValidIssuer = IssuerName,
                     ValidateAudience = false,
-                    ValidateLifetime = true
+                    ValidateLifetime = true,
                 };
             });
 

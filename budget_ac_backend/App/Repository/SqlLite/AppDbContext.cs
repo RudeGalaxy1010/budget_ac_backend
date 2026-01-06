@@ -3,16 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace budget_ac_backend.App.Repository.SqlLite;
 
-public sealed class AppDbContext : DbContext {
-    private const string? UserOperationCategoriesTableName = "UserOperationCategories";
-
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options) {
     public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Operation> Operations => Set<Operation>();
-
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {
-        Database.EnsureCreated();
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<User>(entity => {

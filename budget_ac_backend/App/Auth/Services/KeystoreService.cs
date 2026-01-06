@@ -2,16 +2,11 @@
 
 namespace budget_ac_backend.App.Auth.Services;
 
-public class KeystoreService : IKeystoreService {
+public class KeystoreService(IConfiguration configuration) : IKeystoreService {
     private const string KeyPropertyName = "SecretKey";
 
-    private readonly ConfigurationManager _configurationManager;
+    private readonly IConfiguration _configurationManager = configuration.ThrowIfArgumentNull();
 
-    public KeystoreService(ConfigurationManager configurationManager) {
-        _configurationManager = configurationManager.ThrowIfArgumentNull();
-    }
-
-    public string GetSecretKey() {
-        return _configurationManager[KeyPropertyName].ThrowIfNullOrWhiteSpace(nameof(KeyPropertyName));
-    }
+    public string GetSecretKey() =>
+        _configurationManager[KeyPropertyName].ThrowIfNullOrWhiteSpace(nameof(KeyPropertyName));
 }

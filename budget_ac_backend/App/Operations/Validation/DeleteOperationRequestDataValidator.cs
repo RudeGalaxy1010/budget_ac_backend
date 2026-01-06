@@ -1,7 +1,7 @@
-﻿using budget_ac_backend.App.BL.Requests.Data;
+﻿using budget_ac_backend.App.Operations.Requests.Data;
 using FluentValidation;
 
-namespace budget_ac_backend.App.BL.Validation;
+namespace budget_ac_backend.App.Operations.Validation;
 
 public class DeleteOperationRequestDataValidator : AbstractValidator<DeleteOperationRequestData> {
     public DeleteOperationRequestDataValidator() {

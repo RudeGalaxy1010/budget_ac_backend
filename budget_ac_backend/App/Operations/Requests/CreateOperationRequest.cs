@@ -1,24 +1,24 @@
-﻿using budget_ac_backend.App.BL.Requests.Data;
-using budget_ac_backend.App.Data;
+﻿using budget_ac_backend.App.Data;
+using budget_ac_backend.App.Operations.Requests.Data;
 using budget_ac_backend.App.Repository;
 using budget_ac_backend.App.Utils;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace budget_ac_backend.App.BL.Requests;
+namespace budget_ac_backend.App.Operations.Requests;
 
-public class CreateOperationRequest : IdentifiedRequest<CreateOperationsRequestData> {
+public class CreateOperationRequest : IdentifiedRequest<CreateOperationRequestData> {
     private readonly IOperationRepository _operationRepository;
-    private readonly IValidator<CreateOperationsRequestData> _validator;
+    private readonly IValidator<CreateOperationRequestData> _validator;
 
     public CreateOperationRequest(
         IOperationRepository operationRepository,
-        IValidator<CreateOperationsRequestData> validator) {
+        IValidator<CreateOperationRequestData> validator) {
         _operationRepository = operationRepository.ThrowIfArgumentNull();
         _validator = validator.ThrowIfArgumentNull();
     }
 
-    protected override async Task<IResult> OnHandle(int userId, CreateOperationsRequestData request) {
+    protected override async Task<IResult> OnHandle(int userId, CreateOperationRequestData request) {
         ValidationResult validationResult = await _validator.ValidateAsync(request);
 
         if (!validationResult.IsValid) {

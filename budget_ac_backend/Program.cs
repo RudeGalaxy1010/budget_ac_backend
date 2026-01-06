@@ -1,14 +1,17 @@
 using budget_ac_backend.App.Auth;
-using budget_ac_backend.App.BL;
-using budget_ac_backend.App.CORS;
 using budget_ac_backend.App.Logging;
 using budget_ac_backend.App.Middleware;
+using budget_ac_backend.App.Operations;
 using budget_ac_backend.App.Repository;
 using budget_ac_backend.App.Repository.SqlLite;
-using budget_ac_backend.App.Utils;
+using budget_ac_backend.App.Statistics;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.EntityFrameworkCore;
 using ILogger = Serilog.ILogger;
+
+const string frontendCorsPolicyName = "AllowFrontend";
+const string frontendOrigin = "http://localhost:3000";
 
 ILogger logger = new FileLoggerBuilder().Build();
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -16,20 +19,27 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("secrets.json", false, true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowFrontend", policy => {
+    options.AddPolicy(frontendCorsPolicyName, policy => {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(frontendOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // если используешь cookies / auth
+            .AllowCredentials();
     });
 });
 builder.Services.AddSwaggerGen();
-builder.AddSqlite();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Sqlite")));
+builder.AddRepository();
 builder.AddAuth();
+builder.AddOperations();
+builder.AddStatistics();
 
 WebApplication app = builder.Build();
-app.UseCors("AllowFrontend");
+
+// Middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
+app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
 
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
@@ -37,25 +47,21 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
-
-// Middleware
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseMiddleware<RequestResponseLoggingMiddleware>();
-app.UseMiddleware<JsonExceptionHandlerMiddleWare>();
+app.UseCors(frontendCorsPolicyName);
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Repository
-SqliteMap sqliteMap = new SqliteMap(app);
-AppDbContext appDbContext = app.Services.CreateScope().ServiceProvider.GetService<AppDbContext>().ThrowIfArgumentNull();
-(IUserRepository UserRepository, IOperationRepository OperationRepository)
-    repositories =
-        await sqliteMap.AddRepositories(appDbContext);
+using (IServiceScope scope = app.Services.CreateScope()) {
+    AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    // TODO: Migrate
+    db.Database.EnsureCreated();
+}
 
 // Requests
-AuthMap authMap = new AuthMap(app, repositories.UserRepository);
-authMap.MapRoutes();
-
-BlMap blMap = new BlMap(app, repositories.UserRepository, repositories.OperationRepository);
-blMap.MapRequests();
+new AuthMap(app).MapRoutes();
+new OperationsMap(app).MapRoutes();
+new StatisticsMap(app).MapRoutes();
 
 // Startup
 app.Lifetime.ApplicationStarted.Register(() => {
@@ -71,5 +77,4 @@ app.Lifetime.ApplicationStarted.Register(() => {
 });
 
 app.Lifetime.ApplicationStopping.Register(() => { logger.Information("Shutting down..."); });
-
 app.Run();

@@ -1,11 +1,11 @@
-﻿using budget_ac_backend.App.BL.Requests.Data;
-using budget_ac_backend.App.Data;
+﻿using budget_ac_backend.App.Data;
+using budget_ac_backend.App.Operations.Requests.Data;
 using budget_ac_backend.App.Repository;
 using budget_ac_backend.App.Utils;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace budget_ac_backend.App.BL.Requests;
+namespace budget_ac_backend.App.Operations.Requests;
 
 public class GetOperationsRequest : IdentifiedRequest<GetOperationsRequestData> {
     private readonly IOperationRepository _operationRepository;

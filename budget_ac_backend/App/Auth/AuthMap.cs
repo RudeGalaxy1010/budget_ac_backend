@@ -7,46 +7,62 @@ using FluentValidation;
 
 namespace budget_ac_backend.App.Auth;
 
-public class AuthMap {
+public class AuthMap(WebApplication app) {
     private const string CreateUserRoute = "/auth/register";
     private const string LoginRoute = "/auth/login";
     private const string RefreshTokenRoute = "/auth/refresh";
     private const string CheckTokenRoute = "/auth/check";
 
-    private readonly WebApplication _app;
-
-    private readonly CreateUserRequest _createUserRequest;
-    private readonly LoginUserRequest _loginUserRequest;
-    private readonly RefreshTokenRequest _refreshTokenRequest;
-    private readonly CheckTokenRequest _checkTokenRequest;
-
-    public AuthMap(WebApplication app, IUserRepository userRepository) {
-        _app = app;
-        _app.UseAuthentication();
-        _app.UseAuthorization();
-
-        IValidator<CreateUserRequestData> createUserDataValidator = _app.Services.GetService<IValidator<CreateUserRequestData>>().ThrowIfArgumentNull();
-        IValidator<LoginUserRequestData> loginDataValidator = app.Services.GetService<IValidator<LoginUserRequestData>>().ThrowIfArgumentNull();
-        IValidator<RefreshTokenRequestData> refreshTokenDataValidator = app.Services.GetService<IValidator<RefreshTokenRequestData>>().ThrowIfArgumentNull();
-        ITokenGeneratorService tokenGeneratorService = _app.Services.GetService<ITokenGeneratorService>().ThrowIfArgumentNull();
-        IPasswordHashService passwordHashService = _app.Services.GetService<IPasswordHashService>().ThrowIfArgumentNull();
-
-        _createUserRequest = new CreateUserRequest(createUserDataValidator, userRepository, passwordHashService, tokenGeneratorService);
-        _loginUserRequest = new LoginUserRequest(loginDataValidator, userRepository, passwordHashService, tokenGeneratorService);
-        _refreshTokenRequest = new RefreshTokenRequest(refreshTokenDataValidator, userRepository, tokenGeneratorService);
-        _checkTokenRequest = new CheckTokenRequest(userRepository);
+    public void MapRoutes() {
+        app.MapPost(CreateUserRoute, CreateUser).AllowAnonymous();
+        app.MapPost(LoginRoute, LoginUser).AllowAnonymous();
+        app.MapPost(RefreshTokenRoute, RefreshToken).AllowAnonymous();
+        app.MapGet(CheckTokenRoute, CheckToken).AllowAnonymous();
     }
 
-    public void MapRoutes() {
-        _app.MapPost(CreateUserRoute, (CreateUserRequestData request) =>
-            _createUserRequest.Handle(request)).AllowAnonymous();
+    private async static Task<IResult> CreateUser(
+        CreateUserRequestData request,
+        IValidator<CreateUserRequestData> createUserDataValidator,
+        IUserRepository userRepository,
+        IPasswordHashService passwordHashService,
+        ITokenGeneratorService tokenGeneratorService) {
+        CreateUserRequest createUserRequest = new CreateUserRequest(createUserDataValidator,
+            userRepository,
+            passwordHashService,
+            tokenGeneratorService);
+        return await createUserRequest.Handle(request);
+    }
 
-        _app.MapPost(LoginRoute, (LoginUserRequestData request) =>
-            _loginUserRequest.Handle(request)).AllowAnonymous();
+    private async static Task<IResult> LoginUser(
+        LoginUserRequestData request,
+        IValidator<LoginUserRequestData> loginDataValidator,
+        IUserRepository userRepository,
+        IPasswordHashService passwordHashService,
+        ITokenGeneratorService tokenGeneratorService
+    ) {
+        LoginUserRequest loginUserRequest = new LoginUserRequest(
+            loginDataValidator,
+            userRepository,
+            passwordHashService,
+            tokenGeneratorService);
+        return await loginUserRequest.Handle(request);
+    }
 
-        _app.MapPost(RefreshTokenRoute, (RefreshTokenRequestData request) =>
-            _refreshTokenRequest.Handle(request)).AllowAnonymous();
+    private async static Task<IResult> RefreshToken(
+        RefreshTokenRequestData request,
+        IValidator<RefreshTokenRequestData> refreshTokenDataValidator,
+        IUserRepository userRepository,
+        ITokenGeneratorService tokenGeneratorService
+    ) {
+        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
+            refreshTokenDataValidator,
+            userRepository,
+            tokenGeneratorService);
+        return await refreshTokenRequest.Handle(request);
+    }
 
-        _app.MapGet(CheckTokenRoute, (Delegate)_checkTokenRequest.Handle).AllowAnonymous();
+    private async static Task<IResult> CheckToken(HttpContext context, IUserRepository userRepository) {
+        CheckTokenRequest checkTokenRequest = new CheckTokenRequest(userRepository);
+        return await checkTokenRequest.Handle(context);
     }
 }

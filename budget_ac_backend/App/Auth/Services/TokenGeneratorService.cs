@@ -29,7 +29,7 @@ public class TokenGeneratorService(IKeystoreService keystoreService) : ITokenGen
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(TokenLifeTimeInMinutes),
-            Issuer = AuthBuilder.ThisIssuer,
+            Issuer = AuthBuilder.IssuerName,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 

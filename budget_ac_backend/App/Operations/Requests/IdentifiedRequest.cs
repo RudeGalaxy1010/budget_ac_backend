@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace budget_ac_backend.App.BL.Requests;
+namespace budget_ac_backend.App.Operations.Requests;
 
 public abstract class IdentifiedRequest<T> {
     public async Task<IResult> Handle(HttpContext context, T request) {
