@@ -7,16 +7,12 @@ using FluentValidation.Results;
 
 namespace budget_ac_backend.App.Operations.Requests;
 
-public class CreateOperationRequest : IdentifiedRequest<CreateOperationRequestData> {
-    private readonly IOperationRepository _operationRepository;
-    private readonly IValidator<CreateOperationRequestData> _validator;
-
-    public CreateOperationRequest(
-        IOperationRepository operationRepository,
-        IValidator<CreateOperationRequestData> validator) {
-        _operationRepository = operationRepository.ThrowIfArgumentNull();
-        _validator = validator.ThrowIfArgumentNull();
-    }
+public class CreateOperationRequest(
+    IOperationRepository operationRepository,
+    IValidator<CreateOperationRequestData> validator)
+    : IdentifiedRequest<CreateOperationRequestData> {
+    private readonly IOperationRepository _operationRepository = operationRepository.ThrowIfArgumentNull();
+    private readonly IValidator<CreateOperationRequestData> _validator = validator.ThrowIfArgumentNull();
 
     protected override async Task<IResult> OnHandle(int userId, CreateOperationRequestData request) {
         ValidationResult validationResult = await _validator.ValidateAsync(request);
@@ -35,7 +31,7 @@ public class CreateOperationRequest : IdentifiedRequest<CreateOperationRequestDa
             Id = operation.Id,
             CategoryName = operation.Category.Name,
             Money = operation.Money,
-            Date = operation.Date
+            Date = DateTime.SpecifyKind(operation.Date, DateTimeKind.Utc),
         });
     }
 }

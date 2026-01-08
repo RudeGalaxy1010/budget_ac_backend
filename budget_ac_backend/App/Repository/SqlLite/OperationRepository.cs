@@ -61,7 +61,7 @@ public class OperationRepository : IOperationRepository {
 
     public async Task<List<Operation>> GetOperations(int userId, DateTime from, DateTime to) {
         return await _context.Operations
-            .Where(o => o.UserId == userId && o.Date >= from && o.Date <= to)
+            .Where(o => o.UserId == userId && o.Date >= from && o.Date < to)
             .Include(o => o.Category)
             .Include(o => o.User)
             .Include(o => o.Category.User)

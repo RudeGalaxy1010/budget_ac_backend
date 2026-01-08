@@ -8,22 +8,14 @@ using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace budget_ac_backend.App.Auth.Requests;
 
-public class LoginUserRequest {
-    private readonly IPasswordHashService _passwordHashService;
-    private readonly ITokenGeneratorService _tokenGeneratorService;
-    private readonly IValidator<LoginUserRequestData> _loginRequestValidator;
-    private readonly IUserRepository _userRepository;
-
-    public LoginUserRequest(
-        IValidator<LoginUserRequestData> loginRequestValidator,
-        IUserRepository userRepository,
-        IPasswordHashService passwordHashService,
-        ITokenGeneratorService tokenGeneratorService) {
-        _passwordHashService = passwordHashService;
-        _loginRequestValidator = loginRequestValidator.ThrowIfArgumentNull();
-        _userRepository = userRepository.ThrowIfArgumentNull();
-        _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
-    }
+public class LoginUserRequest(
+    IValidator<LoginUserRequestData> loginRequestValidator,
+    IUserRepository userRepository,
+    IPasswordHashService passwordHashService,
+    ITokenGeneratorService tokenGeneratorService) {
+    private readonly ITokenGeneratorService _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
+    private readonly IValidator<LoginUserRequestData> _loginRequestValidator = loginRequestValidator.ThrowIfArgumentNull();
+    private readonly IUserRepository _userRepository = userRepository.ThrowIfArgumentNull();
 
     public async Task<IResult> Handle(LoginUserRequestData request) {
         ValidationResult validationResult = await _loginRequestValidator.ValidateAsync(request);
@@ -38,7 +30,7 @@ public class LoginUserRequest {
             return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
         }
 
-        if (!_passwordHashService.VerifyPassword(request.Password, user.Salt, user.PasswordHash)) {
+        if (!passwordHashService.VerifyPassword(request.Password, user.Salt, user.PasswordHash)) {
             return Results.BadRequest(new { error = ErrorMessages.WrongEmailOrPassword });
         }
 

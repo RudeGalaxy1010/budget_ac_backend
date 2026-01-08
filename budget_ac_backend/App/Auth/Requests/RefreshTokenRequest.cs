@@ -8,19 +8,13 @@ using FluentValidation.Results;
 
 namespace budget_ac_backend.App.Auth.Requests;
 
-public class RefreshTokenRequest {
-    private readonly ITokenGeneratorService _tokenGeneratorService;
-    private readonly IUserRepository _userRepository;
-    private readonly IValidator<RefreshTokenRequestData> _validator;
-
-    public RefreshTokenRequest(
-        IValidator<RefreshTokenRequestData> validator,
-        IUserRepository userRepository,
-        ITokenGeneratorService tokenGeneratorService) {
-        _validator = validator.ThrowIfArgumentNull();
-        _userRepository = userRepository.ThrowIfArgumentNull();
-        _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
-    }
+public class RefreshTokenRequest(
+    IValidator<RefreshTokenRequestData> validator,
+    IUserRepository userRepository,
+    ITokenGeneratorService tokenGeneratorService) {
+    private readonly ITokenGeneratorService _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
+    private readonly IUserRepository _userRepository = userRepository.ThrowIfArgumentNull();
+    private readonly IValidator<RefreshTokenRequestData> _validator = validator.ThrowIfArgumentNull();
 
     public async Task<IResult> Handle(RefreshTokenRequestData request) {
         ValidationResult result = await _validator.ValidateAsync(request);

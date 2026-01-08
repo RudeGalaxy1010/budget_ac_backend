@@ -7,16 +7,12 @@ using FluentValidation.Results;
 
 namespace budget_ac_backend.App.Operations.Requests;
 
-public class DeleteOperationRequest : IdentifiedRequest<DeleteOperationRequestData> {
-    private readonly IOperationRepository _operationRepository;
-    private readonly IValidator<DeleteOperationRequestData> _validator;
-
-    public DeleteOperationRequest(
-        IOperationRepository operationRepository,
-        IValidator<DeleteOperationRequestData> validator) {
-        _operationRepository = operationRepository.ThrowIfArgumentNull();
-        _validator = validator.ThrowIfArgumentNull();
-    }
+public class DeleteOperationRequest(
+    IOperationRepository operationRepository,
+    IValidator<DeleteOperationRequestData> validator)
+    : IdentifiedRequest<DeleteOperationRequestData> {
+    private readonly IOperationRepository _operationRepository = operationRepository.ThrowIfArgumentNull();
+    private readonly IValidator<DeleteOperationRequestData> _validator = validator.ThrowIfArgumentNull();
 
     protected override async Task<IResult> OnHandle(int userId, DeleteOperationRequestData request) {
         ValidationResult validationResult = await _validator.ValidateAsync(request);

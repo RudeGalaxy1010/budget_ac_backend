@@ -7,16 +7,12 @@ using FluentValidation.Results;
 
 namespace budget_ac_backend.App.Operations.Requests;
 
-public class GetOperationsRequest : IdentifiedRequest<GetOperationsRequestData> {
-    private readonly IOperationRepository _operationRepository;
-    private readonly IValidator<GetOperationsRequestData> _validator;
-
-    public GetOperationsRequest(
-        IOperationRepository operationRepository,
-        IValidator<GetOperationsRequestData> validator) {
-        _operationRepository = operationRepository.ThrowIfArgumentNull();
-        _validator = validator.ThrowIfArgumentNull();
-    }
+public class GetOperationsRequest(
+    IOperationRepository operationRepository,
+    IValidator<GetOperationsRequestData> validator)
+    : IdentifiedRequest<GetOperationsRequestData> {
+    private readonly IOperationRepository _operationRepository = operationRepository.ThrowIfArgumentNull();
+    private readonly IValidator<GetOperationsRequestData> _validator = validator.ThrowIfArgumentNull();
 
     protected override async Task<IResult> OnHandle(int userId, GetOperationsRequestData request) {
         ValidationResult validationResult = await _validator.ValidateAsync(request);
@@ -26,11 +22,11 @@ public class GetOperationsRequest : IdentifiedRequest<GetOperationsRequestData> 
         }
 
         List<Operation> operations = await _operationRepository.GetOperations(userId, request.From, request.To);
-        return Results.Ok(operations.Select(o => new {
-            Id = o.Id,
-            Money = o.Money,
-            Date = o.Date,
-            CategoryName = o.Category.Name
+        return Results.Ok(operations.Select(operation => new {
+            Id = operation.Id,
+            Money = operation.Money,
+            Date = DateTime.SpecifyKind(operation.Date, DateTimeKind.Utc),
+            CategoryName = operation.Category.Name
         }));
     }
 }

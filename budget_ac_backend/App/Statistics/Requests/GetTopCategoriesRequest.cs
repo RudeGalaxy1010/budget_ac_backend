@@ -1,11 +1,12 @@
 ﻿using budget_ac_backend.App.Data;
-using budget_ac_backend.App.Operations.Requests.Data;
+using budget_ac_backend.App.Operations.Requests;
 using budget_ac_backend.App.Repository;
+using budget_ac_backend.App.Statistics.Requests.Data;
 using budget_ac_backend.App.Utils;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace budget_ac_backend.App.Operations.Requests;
+namespace budget_ac_backend.App.Statistics.Requests;
 
 public class GetTopCategoriesRequest(IOperationRepository repository, IValidator<GetTopCategoriesRequestData> validator)
     : IdentifiedRequest<GetTopCategoriesRequestData> {

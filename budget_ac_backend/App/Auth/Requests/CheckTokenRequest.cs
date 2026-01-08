@@ -6,13 +6,8 @@ using budget_ac_backend.App.Utils;
 
 namespace budget_ac_backend.App.Auth.Requests;
 
-public class CheckTokenRequest {
-    private readonly IUserRepository _userRepository;
-
-    public CheckTokenRequest(
-        IUserRepository userRepository) {
-        _userRepository = userRepository.ThrowIfArgumentNull();
-    }
+public class CheckTokenRequest(IUserRepository userRepository) {
+    private readonly IUserRepository _userRepository = userRepository.ThrowIfArgumentNull();
 
     public async Task<IResult> Handle(HttpContext context) {
         string? sub = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -8,22 +8,14 @@ using FluentValidation.Results;
 
 namespace budget_ac_backend.App.Auth.Requests;
 
-public class CreateUserRequest {
-    private readonly IPasswordHashService _passwordHashService;
-    private readonly ITokenGeneratorService _tokenGeneratorService;
-    private readonly IValidator<CreateUserRequestData> _loginRequestValidator;
-    private readonly IUserRepository _userRepository;
-
-    public CreateUserRequest(
-        IValidator<CreateUserRequestData> loginRequestValidator,
-        IUserRepository userRepository,
-        IPasswordHashService passwordHashService,
-        ITokenGeneratorService tokenGeneratorService) {
-        _passwordHashService = passwordHashService;
-        _loginRequestValidator = loginRequestValidator.ThrowIfArgumentNull();
-        _userRepository = userRepository.ThrowIfArgumentNull();
-        _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
-    }
+public class CreateUserRequest(
+    IValidator<CreateUserRequestData> loginRequestValidator,
+    IUserRepository userRepository,
+    IPasswordHashService passwordHashService,
+    ITokenGeneratorService tokenGeneratorService) {
+    private readonly ITokenGeneratorService _tokenGeneratorService = tokenGeneratorService.ThrowIfArgumentNull();
+    private readonly IValidator<CreateUserRequestData> _loginRequestValidator = loginRequestValidator.ThrowIfArgumentNull();
+    private readonly IUserRepository _userRepository = userRepository.ThrowIfArgumentNull();
 
     public async Task<IResult> Handle(CreateUserRequestData request) {
         ValidationResult validationResult = await _loginRequestValidator.ValidateAsync(request);
@@ -38,8 +30,8 @@ public class CreateUserRequest {
             return Results.BadRequest(new { error = ErrorMessages.UserAlreadyExists });
         }
 
-        byte[] salt = _passwordHashService.GenerateSalt();
-        byte[] passwordHash = _passwordHashService.HashPassword(request.Password, salt);
+        byte[] salt = passwordHashService.GenerateSalt();
+        byte[] passwordHash = passwordHashService.HashPassword(request.Password, salt);
         string refreshToken = _tokenGeneratorService.GenerateRefreshToken();
         DateTime refreshTokenExpirationDate = _tokenGeneratorService.GetRefreshTokenExpirationDate();
 
